@@ -1,0 +1,36 @@
+SecurityEvent
+| where EventID == 4698
+| extend SubjectUserName = extract(@'<Data Name="SubjectUserName">([^<]*)</Data>', 1, EventData)
+| extend TaskName = extract(@'<Data Name="TaskName">([^<]*)</Data>', 1, EventData)
+| extend TaskContentRaw = extract(@'<Data Name="TaskContent">([\s\S]*?)</Data>', 1, EventData)
+| extend TaskContent = replace_string(
+    replace_string(
+        replace_string(
+            replace_string(TaskContentRaw, "&lt;", "<"),
+            "&gt;", ">"
+        ),
+        "&quot;", "\""
+    ),
+    "&amp;", "&"
+)
+| extend Command = extract(@"<Command>([^<]+)</Command>", 1, TaskContent)
+| extend Arguments = extract(@"<Arguments>([^<]+)</Arguments>", 1, TaskContent)
+| extend RunAsUser = extract(@"<UserId>([^<]+)</UserId>", 1, TaskContent)
+| extend SuspiciousReason = case(
+    Command has_any ("powershell.exe", "pwsh.exe"), "PowerShell execution",
+    Command has "cmd.exe", "Command shell execution",
+    Command has_any ("wscript.exe", "cscript.exe"), "Script interpreter execution",
+    Command has_any ("mshta.exe", "rundll32.exe", "regsvr32.exe"), "LOLBin execution",
+    TaskName !startswith @"\Microsoft\", "Task outside Microsoft namespace",
+    "Other"
+)
+| where SuspiciousReason != "Other"
+| project
+    TimeGenerated,
+    Computer,
+    SubjectUserName,
+    TaskName,
+    Command,
+    Arguments,
+    RunAsUser,
+    SuspiciousReason
