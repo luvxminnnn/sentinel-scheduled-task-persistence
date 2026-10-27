@@ -65,7 +65,6 @@ The system returned:
 
 This confirmed that the host was capable of generating Scheduled Task audit events.
 
-![Audit policy validation](screenshots/01-audit-policy-validation.png)
 
 ---
 
