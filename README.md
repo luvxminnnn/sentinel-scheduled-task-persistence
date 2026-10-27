@@ -499,7 +499,6 @@ sentinel-scheduled-task-persistence/
 ├── queries/
 │   └── scheduled-task-persistence.kql
 └── screenshots/
-    ├── 01-audit-policy-validation.png
     ├── 02-scheduled-task-created.png
     ├── 03-event-4698-ingested.png
     ├── 04-scheduled-task-event-parsing.png
